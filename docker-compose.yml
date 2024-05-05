@@ -36,7 +36,7 @@ services:
     depends_on:
       - mongo
       - keycloak
-    image: antoineleguillou/koovea-task-manager-api:2024.04.05.1
+    image: antoineleguillou/koovea-task-manager-api:2024-05-05.1
     restart: unless-stopped
     build:
       context: .
