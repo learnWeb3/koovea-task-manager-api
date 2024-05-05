@@ -1,0 +1,53 @@
+services:
+  mongo:
+    platform: linux/amd64
+    image: mongo
+    restart: unless-stopped
+    volumes:
+      - './mongo_data:/data/db'
+      - './docker-entrypoint-initdb.js:/docker-entrypoint-initdb.d/docker-entrypoint-initdb.js'
+    env_file:
+      - ./.env.docker.mongo.development
+    networks:
+      - mongo
+    # use it to administer the database
+    ports:
+      - 27017:27017
+  keycloak:
+    platform: linux/amd64
+    image: antoineleguillou/keycloak-dev:24.0
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: keycloak.Dockerfile
+    ports:
+      - 8080:8080
+    env_file:
+      - ./.env.docker.keycloak.development
+    volumes:
+      - ./keycloak_data:/opt/keycloak/data/
+      - ./backup/:/opt/keycloak/backup/
+      - ./backup/2024-04.05.json:/opt/keycloak/data/import/2024-04.05.json
+      # - ./keycloak_themes/koovea:/opt/keycloak/themes/koovea
+    networks:
+      - keycloak
+  task-manager-api:
+    platform: linux/amd64
+    depends_on:
+      - mongo
+      - keycloak
+    image: antoineleguillou/koovea-task-manager-api:2024.04.05.1
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - ./.env.docker.koovea-api.development
+    ports:
+      - 3000:3000
+    networks:
+      - keycloak
+      - mongo
+networks:
+  mongo:
+  keycloak:

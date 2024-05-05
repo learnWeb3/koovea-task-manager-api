@@ -1,0 +1,7 @@
+dist
+mongo_data
+node_modules
+keycloak_data
+k8s
+backup
+.github

@@ -1,0 +1,101 @@
+name: Docker Image build and push (production)
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Create docker network
+        run: docker network create -d bridge test
+
+      - name: Run mongo container
+        run: |
+          docker run -d \
+          -p 27017:27017 \
+          --name=mongo mongo
+
+      - name: Run keycloak container
+        run: |
+          docker run -d \
+          -p 8080:8080 \
+          -e KEYCLOAK_ADMIN=koovea-auth-admin \
+          -e KEYCLOAK_ADMIN_PASSWORD=sNV69zUP2CTs \
+          -v ./backup/2024-04.05.json:/opt/keycloak/data/import/2024-04.05.json \
+          --name=keycloak antoineleguillou/keycloak-dev:24.0
+
+      - name: Sleep for 30 seconds
+        uses: jakejarvis/wait-action@master
+        with:
+          time: "30s"
+
+      - name: check docker status
+        run: docker ps
+
+      - name: Install @nestjs/cli
+        shell: bash
+        run: npm install --global @nestjs/cli --verbose
+
+      - name: Install dependencies
+        shell: bash
+        run: npm install --include dev --verbose
+
+      - name: Build
+        shell: bash
+        run: nest build
+
+      - name: Run end to end test
+        shell: bash
+        run: |
+          NODE_ENV="production" \
+          KEYCLOAK_AUDIENCE="koovea-task-manager-api" \
+          MONGO_URI="mongodb://localhost:27017/koovea-task-manager" \
+          KEYCLOAK_CERTS_URL="http://localhost:8080/realms/koovea/protocol/openid-connect/certs" \
+          KEYCLOAK_ISSUER="http://localhost:8080/realms/koovea" \
+          SWAGGER_BASIC_AUTH_PASSWORD="1lO4Ko3pbZI1" \
+          SWAGGER_BASIC_AUTH_USERNAME="swagger" \
+          npm run test:e2e
+  push:
+    runs-on: ubuntu-latest
+    needs: [test]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: antoineleguillou/koovea-task-manager-api
+          tags: |
+            type=raw,enable=true,priority=200,prefix={{ date 'YYYY-MM-DD' }},suffix=.${{ github.run_number }},value=
+
+      - name: Build
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          platforms: linux/amd64
+          tags: ${{ steps.meta.outputs.tags }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          load: true
