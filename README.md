@@ -45,10 +45,10 @@ Users associated with a task can only read or modify it, while only owners can d
 
 Documentation is secured using basic authentication using the following credentials:
 
+Online documentation available [here](https://api.koovea.ticketing.students-epitech.ovh/swagger)
+
 ID: swagger
 PASSWORD: "1lO4Ko3pbZI1"
-
-- [Swagger documentation](/swagger)
 
 ## Mongo
 
