@@ -23,6 +23,7 @@ export class KeycloakService {
 
     function getKey(header, callback) {
       self.jwksClient.getSigningKey(header.kid, function (err, key) {
+        console.log(err);
         const signingKey = key?.publicKey || key?.rsaPublicKey || '';
         callback(null, signingKey);
       });
@@ -38,6 +39,7 @@ export class KeycloakService {
         },
         function (err, decoded) {
           if (err) {
+            console.log(err);
             reject(err);
           }
           resolve(decoded as TokenPayload);

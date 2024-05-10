@@ -9,9 +9,9 @@ services:
       - ./.env.docker.mongo.development
     networks:
       - mongo
-    # use it to administer the database
-    # ports:
-    #   - 27017:27017
+    # # use it to administer the database
+    ports:
+      - 27017:27017
   keycloak:
     platform: linux/amd64
     image: antoineleguillou/keycloak-dev:24.0
@@ -23,6 +23,11 @@ services:
       - 8080:8080
     env_file:
       - ./.env.docker.keycloak.development
+    healthcheck:
+      test: curl -f http://localhost:8080/realms/koovea/protocol/openid-connect/certs --fail || exit 1
+      interval: 30s
+      timeout: 5s
+      retries: 10
     volumes:
       - ./keycloak_data:/opt/keycloak/data/
       - ./backup/:/opt/keycloak/backup/
@@ -30,20 +35,13 @@ services:
     networks:
       - keycloak
 
-  init-realm:
-    image: alpine
-    command: >
-      sh -c "sleep 2m 30s"
-
   task-manager-api:
     platform: linux/amd64
     depends_on:
       mongo:
         condition: service_started
       keycloak:
-        condition: service_started
-      init-realm:
-        condition: service_completed_successfully
+        condition: service_healthy
     image: antoineleguillou/koovea-task-manager-api:2024-05-05.1
     restart: unless-stopped
     build:
@@ -61,7 +59,7 @@ services:
     depends_on:
       task-manager-api:
         condition: service_started
-    image: antoineleguillou/koovea-task-manager-app:2024-05-05.4
+    image: antoineleguillou/koovea-task-manager-app:dev.2024-05-12.1
     restart: unless-stopped
     ports:
       - 3001:3000

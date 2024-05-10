@@ -2,7 +2,7 @@
 
 This repository contains the code related to the koovea-task-manager api
 
-Application is hosted and accessible [here](https://api.koovea.ticketing.students-epitech.ovh)
+Application is hosted and accessible [here](https://api.koovea.ticketing.students-epitech.ovh/swagger)
 
 A frontend interface is available [here](https://koovea.ticketing.students-epitech.ovh) and delivers a jwt access token to be used for authentication purpose.
 
@@ -44,6 +44,8 @@ Users associated with a task can only read or modify it, while only owners can d
 ## Quick start (development)
 
 ```bash
+# build the images
+docker compose build
 # start up the docker containers
 docker compose up -d
 # wait until all containers are healthy (approx 1 minutes)
@@ -66,7 +68,6 @@ docker ps
   password: 1lO4Ko3pbZI1
 
 ## Quick start (production)
-
 
 1. Get an acces token by visiting the frontend https://koovea.ticketing.students-epitech.ovh
 
