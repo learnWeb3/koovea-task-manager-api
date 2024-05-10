@@ -41,6 +41,48 @@ Users associated with a task can only read or modify it, while only owners can d
   - [Extra Bonus] User authentication and authorization granted by a third party server (keycloak)
 - The project's source code must be accessible online, for example, on a source code management platform like Github, Gitlab, or BitBucket.
 
+## Quick start (development)
+
+```bash
+# start up the docker containers
+docker compose up -d
+# wait until all containers are healthy (approx 1 minutes)
+docker ps
+```
+
+1. Get an acces token by visiting the frontend http://localhost:3001
+
+2. Login using the following users or registering a new one :
+
+- email: mike@yopmail.com
+  password: foobar
+
+- email: jacko@yopmail.com
+  password: foobar
+
+3. test the api by visiting the backend and using the swagger documentation http://localhost:3000/swagger and using the following credentials
+
+- id: swagger
+  password: 1lO4Ko3pbZI1
+
+## Quick start (production)
+
+
+1. Get an acces token by visiting the frontend https://koovea.ticketing.students-epitech.ovh
+
+2. Login using the following users or registering a new one :
+
+- email: mike@yopmail.com
+  password: foobar
+
+- email: jacko@yopmail.com
+  password: foobar
+
+3. test the api by visiting the backend and using the swagger documentation https://api.koovea.ticketing.students-epitech.ovh/swagger and using the following credentials
+
+- id: swagger
+  password: 1lO4Ko3pbZI1
+
 ## APIs documentation
 
 Documentation is secured using basic authentication using the following credentials:

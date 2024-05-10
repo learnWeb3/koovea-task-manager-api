@@ -1,6 +1,5 @@
 services:
   mongo:
-    platform: linux/amd64
     image: mongo
     restart: unless-stopped
     volumes:
@@ -11,8 +10,8 @@ services:
     networks:
       - mongo
     # use it to administer the database
-    ports:
-      - 27017:27017
+    # ports:
+    #   - 27017:27017
   keycloak:
     platform: linux/amd64
     image: antoineleguillou/keycloak-dev:24.0
@@ -28,14 +27,23 @@ services:
       - ./keycloak_data:/opt/keycloak/data/
       - ./backup/:/opt/keycloak/backup/
       - ./backup/2024-04.05.json:/opt/keycloak/data/import/2024-04.05.json
-      # - ./keycloak_themes/koovea:/opt/keycloak/themes/koovea
     networks:
       - keycloak
+
+  init-realm:
+    image: alpine
+    command: >
+      sh -c "sleep 2m 30s"
+
   task-manager-api:
     platform: linux/amd64
     depends_on:
-      - mongo
-      - keycloak
+      mongo:
+        condition: service_started
+      keycloak:
+        condition: service_started
+      init-realm:
+        condition: service_completed_successfully
     image: antoineleguillou/koovea-task-manager-api:2024-05-05.1
     restart: unless-stopped
     build:
@@ -48,6 +56,15 @@ services:
     networks:
       - keycloak
       - mongo
+  task-manager-app:
+    platform: linux/amd64
+    depends_on:
+      task-manager-api:
+        condition: service_started
+    image: antoineleguillou/koovea-task-manager-app:2024-05-05.4
+    restart: unless-stopped
+    ports:
+      - 3001:3000
 networks:
   mongo:
   keycloak:
